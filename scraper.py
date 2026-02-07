@@ -150,7 +150,7 @@ def is_valid(url):
             if path.startswith("/wp-admin/") and "admin-ajax.php" not in path:
                 return False
  
-        if "calendar" in path or "event" in path:
+        if "calendar" in path or "event" in path or "events" in path:
             if parsed.query or re.search(r'\d{4}', path):
                 return False
         
@@ -161,6 +161,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

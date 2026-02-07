@@ -176,11 +176,18 @@ def is_valid(url):
         if any(trap in query for trap in wiki_traps):
             log_trap_or_error(url, "Blocked", "DokuWiki Trap Detected")
             return False
+
+        if "gitlab.ics.uci.edu" in domain:
+            if "/-/commit/" in path or "/-/commits/" in path or "view=" in query:
+                return False
+            if any(p in path for p in ["/-/blob/", "/-/tree/", "/-/raw/"]):
+                return False
         
         return True
         
     except Exception as e:
         return False
+
 
 
 

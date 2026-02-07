@@ -2,6 +2,7 @@ import re
 from urllib.parse import urlparse, urljoin, urlunparse
 from bs4 import BeautifulSoup
 import json
+from collections import Counter
 
 STOP_WORDS = {
     "a", "about", "above", "after", "again", "against", "all", "am",
@@ -128,6 +129,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

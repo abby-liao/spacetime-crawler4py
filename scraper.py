@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import json
 from collections import Counter
 
+
 STOP_WORDS = set([
     "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't", 
     "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", 
@@ -47,6 +48,7 @@ def scraper(url, resp):
     if resp.status == 200 and resp.raw_response:
         
         record["unique_urls"].add(url)
+        print(f"Current unique pages: {len(record['unique_urls'])} | URL: {url}")
         
         parsed_url = urlparse(url)
         hostname = parsed_url.netloc.lower()
@@ -64,7 +66,7 @@ def scraper(url, resp):
         meaningful_words = [w for w in words if len(w) > 1 and w not in STOP_WORDS]
         record["word_freq"].update(meaningful_words)
         
-        if len(record["unique_urls"]) % 100 == 0:
+        if len(record["unique_urls"]) % 5 == 0:
             save_stats_to_file()
             print(f"save_stats_to_file {len(record['unique_urls'])} pages! :)")
 
@@ -159,6 +161,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

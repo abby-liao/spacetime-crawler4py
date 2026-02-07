@@ -26,6 +26,7 @@ record = {
     "word_freq": Counter(),
     "longest_page": {"url": "", "word_count": 0},
     "unique_urls": set()
+    "subdomains": Counter()
 }
 
 def save_stats_to_file():
@@ -33,7 +34,7 @@ def save_stats_to_file():
         "unique_pages_count": len(record["unique_urls"]),
         "longest_page": record["longest_page"],
         "top_50_words": record["word_freq"].most_common(50),
-        "subdomains": dict(record["subdomains"])
+        "subdomains": sorted_subdomains
     }
     
     with open("crawler_results.json", "w") as f:
@@ -48,8 +49,6 @@ def scraper(url, resp):
         parsed_url = urlparse(url)
         hostname = parsed_url.netloc.lower()
         if hostname.endswith(".uci.edu"):
-            if "subdomains" not in record:
-                record["subdomains"] = Counter()
             record["subdomains"][hostname] += 1
         
         soup = BeautifulSoup(resp.raw_response.content, "lxml")
@@ -139,6 +138,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

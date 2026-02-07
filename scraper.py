@@ -33,7 +33,7 @@ def save_stats_to_file():
         "unique_pages_count": len(record["unique_urls"]),
         "longest_page": record["longest_page"],
         "top_50_words": record["word_freq"].most_common(50),
-        "subdomains": dict(record["subdomains"]
+        "subdomains": dict(record["subdomains"])
     }
     
     with open("crawler_results.json", "w") as f:
@@ -139,6 +139,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

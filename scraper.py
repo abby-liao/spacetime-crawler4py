@@ -21,6 +21,7 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
+    try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
@@ -59,5 +60,6 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 

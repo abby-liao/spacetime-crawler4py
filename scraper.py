@@ -79,8 +79,6 @@ def scraper(url, resp):
     
     if len(record["unique_urls"]) % 5 == 0:
         save_stats_to_file()
-        print(f"--- 💾 Auto-saved {len(record['unique_urls'])} pages! ---")
-
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
@@ -187,6 +185,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

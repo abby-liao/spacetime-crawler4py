@@ -1,5 +1,6 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin, urlunparse
+from bs4 import BeautifulSoup
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -15,7 +16,33 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+    output_links = []
+    if resp.status != 200 or not resp.raw_response:
+        return []
+
+    try:
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        page_text = soup.get_text(separator=" ")
+        words = re.findall(r'[a-zA-Z0-9]+', page_text.lower())
+
+        for anchor in soup.find_all('a', href=True):
+            raw_href = anchor['href']
+            full_url = urljoin(url, raw_href)
+            parsed_link = urlparse(full_url)
+            clean_url = urlunparse(parsed_link._replace(fragment=""))
+            output_links.append(clean_url)
+
+
+    except Exception as e:
+        print(f"Error parsing {url}: {e}")
+        return []
+
+return output_links
+            
+            
+        
+        
+    
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -60,6 +87,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

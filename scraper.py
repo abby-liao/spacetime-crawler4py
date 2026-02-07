@@ -127,9 +127,13 @@ def is_valid(url):
             if query or any(char.isdigit() for char in path): 
                 return False
 
+        if ".pdf" in path:
+            return False
+
         return True
     except Exception as e:
         return False
+
 
 
 

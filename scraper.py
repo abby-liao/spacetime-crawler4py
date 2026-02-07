@@ -30,6 +30,13 @@ record = {
     "subdomains": Counter()
 }
 
+def log_trap_or_error(url, status, reason):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = f"[{timestamp}] Status: {status} | Reason: {reason} | URL: {url}\n"
+    
+    with open("detected_traps.txt", "a") as f:
+        f.write(log_entry)
+
 def save_stats_to_file():
     sorted_subdomains = {k: v for k, v in sorted(record["subdomains"].items())}
     
@@ -46,6 +53,8 @@ def save_stats_to_file():
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     if resp.status == 200 and resp.raw_response:
+        log_trap_or_error(url, resp.status, "Non-200 Response")
+        return []
         
         record["unique_urls"].add(url)
         print(f"Current unique pages: {len(record['unique_urls'])} | URL: {url}")
@@ -161,6 +170,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

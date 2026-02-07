@@ -42,7 +42,15 @@ def save_stats_to_file():
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     if resp.status == 200 and resp.raw_response:
+        
         record["unique_urls"].add(url)
+        
+        parsed_url = urlparse(url)
+        hostname = parsed_url.netloc.lower()
+        if hostname.endswith(".uci.edu"):
+            if "subdomains" not in record:
+                record["subdomains"] = Counter()
+            record["subdomains"][hostname] += 1
         
         soup = BeautifulSoup(resp.raw_response.content, "lxml")
         raw_text = soup.get_text(separator=" ")
@@ -88,14 +96,13 @@ def is_valid(url):
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-        if parsed.netloc.endswith(".uci.edu"):
-            record["subdomains"][parsed.netloc] += 1
-        
+
         if parsed.scheme not in set(["http", "https"]):
             return False
         
         domain = parsed.netloc.lower()
         path = parsed.path.lower()
+        query = parsed.query.lower()
         if not path.endswith('/'): path += '/'
 
         allowed_domains = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
@@ -132,6 +139,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

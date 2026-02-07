@@ -63,10 +63,15 @@ def is_valid(url):
                     "/research/undergraduate-research/", "/research/gifts-grants/"
                 ]
                 return any(path.startswith(r) for r in allowed_research)
+        
+        if "events" in path or "calendar" in path:
+            if query or any(char.isdigit() for char in path): 
+                return False
 
         return True
     except Exception as e:
         return False
+
 
 
 

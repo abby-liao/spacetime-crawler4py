@@ -37,6 +37,7 @@ def save_stats_to_file():
         "unique_pages_count": len(record["unique_urls"]),
         "longest_page": record["longest_page"],
         "top_50_words": record["word_freq"].most_common(50)
+        "subdomains": Counter()
     }
     
     with open("crawler_results.json", "w") as f:
@@ -58,7 +59,7 @@ def scraper(url, resp):
         meaningful_words = [w for w in words if len(w) > 1 and w not in STOP_WORDS]
         record["word_freq"].update(meaningful_words)
         
-        if len(_stats["unique_urls"]) % 100 == 0:
+        if len(record["unique_urls"]) % 100 == 0:
             save_stats_to_file()
             print(f"save_stats_to_file {len(record['unique_urls'])} pages! :)")
 
@@ -129,6 +130,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

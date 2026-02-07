@@ -1,9 +1,66 @@
 import re
 from urllib.parse import urlparse, urljoin, urlunparse
 from bs4 import BeautifulSoup
+import json
 
+STOP_WORDS = {
+    "a", "about", "above", "after", "again", "against", "all", "am",
+    "an", "and", "any", "are", "aren't", "as", "at",
+    "be", "because", "been", "before", "being", "below", "between",
+    "both", "but", "by",
+    "can't", "cannot", "could", "couldn't",
+    "did", "didn't", "do", "does", "doesn't", "doing", "don't",
+    "down", "during",
+    "each", "few", "for", "from", "further",
+    "had", "hadn't", "has", "hasn't", "have", "haven't", "having",
+    "he", "he'd", "he'll", "he's", "her", "here", "here's",
+    "hers", "herself", "him", "himself", "his",
+    "how", "how's",
+    "i", "i'd", "i'll", "i'm", "i've",
+    "if", "in", "into", "is", "isn't", "it", "it's", "its", "itself",
+    "let's",
+    "me", "more", "most", "mustn't", "my", "myself",
+    "no", "nor", "not",
+    "of", "off", "on", "once", "only", "or", "other", "ought",
+    "our", "ours"
+}
+
+record = {
+    "word_freq": Counter(),
+    "longest_page": {"url": "", "word_count": 0},
+    "unique_urls": set()
+}
+
+def save_stats_to_file():
+    report = {
+        "unique_pages_count": len(record["unique_urls"]),
+        "longest_page": record["longest_page"],
+        "top_50_words": record["word_freq"].most_common(50)
+    }
+    
+    with open("crawler_results.json", "w") as f:
+        json.dump(report, f, indent=4)
+        
 def scraper(url, resp):
     links = extract_next_links(url, resp)
+    if resp.status == 200 and resp.raw_response:
+        record["unique_urls"].add(url)
+        
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        raw_text = soup.get_text(separator=" ")
+        words = re.findall(r'[a-zA-Z0-9]+', raw_text.lower())
+        
+        current_word_count = len(words)
+        if current_word_count > record["longest_page"]["word_count"]:
+            record["longest_page"] = {"url": url, "word_count": current_word_count}
+            
+        meaningful_words = [w for w in words if len(w) > 1 and w not in STOP_WORDS]
+        record["word_freq"].update(meaningful_words)
+        
+        if len(_stats["unique_urls"]) % 100 == 0:
+            save_stats_to_file()
+            print(f"save_stats_to_file {len(record['unique_urls'])} pages! :)")
+
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
@@ -71,6 +128,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

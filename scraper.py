@@ -21,62 +21,43 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
-    try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        #lower case for path and netloc
-        path = parsed.path.lower()
+        
         domain = parsed.netloc.lower()
+        path = parsed.path.lower()
 
-        allowed = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
-        if not any(dom in domain for dom in allowed):
+        allowed_domains = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
+        if not any(domain.endswith(d) for d in allowed_domains):
             return False
-            
-        if "ics.uci.edu" in domain:
-            if path.startswith("/people/"): return False
-            if path.startswith("/happening/"): return False
 
-                
-        if "cs.uci.edu" in domain:
-            if path.startswith("/people/"): return False
-            if path.startswith("/happening/"): return False
-                
+        if re.match(r".*\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma|zip|rar|gz)$", path):
+            return False
+
+        path_segments = [s for s in path.split('/') if s]
+        if len(path_segments) != len(set(path_segments)):
+            return False
+
+        if any(d in domain for d in ["ics.uci.edu", "cs.uci.edu", "stat.uci.edu"]):
+            if path.startswith("/people") or path.startswith("/happening"):
+                return False
+
         if "informatics.uci.edu" in domain:
             if path.startswith("/wp-admin/"):
-                if path == "/wp-admin/admin-ajax.php":
-                    return True 
-                return False 
-            if path.startswith("/research/"):
-                allowed_research_paths = [
-                    "/research/labs-centers/",
-                    "/research/areas-of-expertise/",
-                    "/research/example-research-projects/",
-                    "/research/phd-research/",
-                    "/research/past-dissertations/",
-                    "/research/masters-research/",
-                    "/research/undergraduate-research/",
-                    "/research/gifts-grants/"
-                ]
-                if any(path.startswith(allowed_path) for allowed_path in allowed_research_paths):
-                    return True 
-            return False 
+                return path == "/wp-admin/admin-ajax.php"
             
-        if "stat.uci.edu" in domain:
-            if path.startswith("/people/"): return False
-            if path.startswith("/happening/"): return False
-                
-        return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            if path.startswith("/research/"):
+                allowed_research = [
+                    "/research/labs-centers/", "/research/areas-of-expertise/",
+                    "/research/example-research-projects/", "/research/phd-research/",
+                    "/research/past-dissertations/", "/research/masters-research/",
+                    "/research/undergraduate-research/", "/research/gifts-grants/"
+                ]
+                return any(path.startswith(r) for r in allowed_research)
 
-    except TypeError:
-        print ("TypeError for ", parsed)
-        raise
+        return True
+    except Exception as e:
+        return False
+
 

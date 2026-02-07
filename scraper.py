@@ -38,6 +38,7 @@ def is_valid(url):
         
         domain = parsed.netloc.lower()
         path = parsed.path.lower()
+        if not path.endswith('/'): path += '/'
 
         allowed_domains = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
         if not any(domain.endswith(d) for d in allowed_domains):
@@ -47,14 +48,14 @@ def is_valid(url):
             return False
 
         if any(d in domain for d in ["ics.uci.edu", "cs.uci.edu", "stat.uci.edu"]):
-            if path.startswith("/people") or path.startswith("/happening"):
+            if path.startswith("/people/") or path.startswith("/happening/"):
                 return False
 
         if "informatics.uci.edu" in domain:
             if path.startswith("/wp-admin/"):
-                return path == "/wp-admin/admin-ajax.php"
+                return "admin-ajax.php" in path
             
-            if path.startswith("/research/"):
+            if path.startswith("/research/") and path != "/research/":
                 allowed_research = [
                     "/research/labs-centers/", "/research/areas-of-expertise/",
                     "/research/example-research-projects/", "/research/phd-research/",
@@ -66,6 +67,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

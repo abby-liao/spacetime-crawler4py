@@ -3,6 +3,7 @@ from urllib.parse import urlparse, urljoin, urlunparse
 from bs4 import BeautifulSoup
 import json
 from collections import Counter
+from datetime import datetime
 
 
 STOP_WORDS = set([
@@ -170,6 +171,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

@@ -116,6 +116,7 @@ def is_valid(url):
         
         domain = parsed.netloc.lower()
         path = parsed.path.lower()
+        query = parsed.query.lower()
         
         allowed_domains = [
             "ics.uci.edu",
@@ -168,6 +169,9 @@ def is_valid(url):
         if "archive" in domain:
             return False
 
+        if "/datasets/" in path or "/dataset/" in path:
+            return False
+
         wiki_traps = ["do=", "tab_files=", "tab_details=", "rev=", "do=media", "do=edit"]
         if any(trap in query for trap in wiki_traps):
             log_trap_or_error(url, "Blocked", "DokuWiki Trap Detected")
@@ -177,6 +181,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

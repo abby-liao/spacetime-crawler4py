@@ -25,7 +25,7 @@ STOP_WORDS = set([
 record = {
     "word_freq": Counter(),
     "longest_page": {"url": "", "word_count": 0},
-    "unique_urls": set()
+    "unique_urls": set),
     "subdomains": Counter()
 }
 
@@ -138,6 +138,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

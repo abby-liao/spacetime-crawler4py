@@ -53,32 +53,33 @@ def save_stats_to_file():
         
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    if resp.status == 200 and resp.raw_response:
-        log_trap_or_error(url, resp.status, "Non-200 Response")
-        return []
+    
+    if resp.status != 200 or not resp.raw_response:
+        log_trap_or_error(url, resp.status, "Non-200 Response or Empty Content")
+        return [] 
         
-        record["unique_urls"].add(url)
-        print(f"Current unique pages: {len(record['unique_urls'])} | URL: {url}")
+    record["unique_urls"].add(url)
+    print(f"Current unique pages: {len(record['unique_urls'])} | URL: {url}")
+    
+    parsed_url = urlparse(url)
+    hostname = parsed_url.netloc.lower()
+    if hostname.endswith(".uci.edu"):
+        record["subdomains"][hostname] += 1
+    
+    soup = BeautifulSoup(resp.raw_response.content, "lxml")
+    raw_text = soup.get_text(separator=" ")
+    words = re.findall(r'[a-zA-Z0-9]+', raw_text.lower())
+    
+    current_word_count = len(words)
+    if current_word_count > record["longest_page"]["word_count"]:
+        record["longest_page"] = {"url": url, "word_count": current_word_count}
         
-        parsed_url = urlparse(url)
-        hostname = parsed_url.netloc.lower()
-        if hostname.endswith(".uci.edu"):
-            record["subdomains"][hostname] += 1
-        
-        soup = BeautifulSoup(resp.raw_response.content, "lxml")
-        raw_text = soup.get_text(separator=" ")
-        words = re.findall(r'[a-zA-Z0-9]+', raw_text.lower())
-        
-        current_word_count = len(words)
-        if current_word_count > record["longest_page"]["word_count"]:
-            record["longest_page"] = {"url": url, "word_count": current_word_count}
-            
-        meaningful_words = [w for w in words if len(w) > 1 and w not in STOP_WORDS]
-        record["word_freq"].update(meaningful_words)
-        
-        if len(record["unique_urls"]) % 5 == 0:
-            save_stats_to_file()
-            print(f"save_stats_to_file {len(record['unique_urls'])} pages! :)")
+    meaningful_words = [w for w in words if len(w) > 1 and w not in STOP_WORDS]
+    record["word_freq"].update(meaningful_words)
+    
+    if len(record["unique_urls"]) % 5 == 0:
+        save_stats_to_file()
+        print(f"--- 💾 Auto-saved {len(record['unique_urls'])} pages! ---")
 
     return [link for link in links if is_valid(link)]
 
@@ -171,6 +172,7 @@ def is_valid(url):
         
     except Exception as e:
         return False
+
 
 
 

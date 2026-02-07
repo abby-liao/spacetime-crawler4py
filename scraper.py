@@ -30,6 +30,8 @@ record = {
 }
 
 def save_stats_to_file():
+    sorted_subdomains = {k: v for k, v in sorted(record["subdomains"].items())}
+    
     report = {
         "unique_pages_count": len(record["unique_urls"]),
         "longest_page": record["longest_page"],
@@ -138,6 +140,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

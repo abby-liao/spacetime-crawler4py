@@ -33,7 +33,7 @@ def save_stats_to_file():
         "unique_pages_count": len(record["unique_urls"]),
         "longest_page": record["longest_page"],
         "top_50_words": record["word_freq"].most_common(50),
-        "subdomains": Counter()
+        "subdomains": dict(record["subdomains"]
     }
     
     with open("crawler_results.json", "w") as f:
@@ -109,7 +109,7 @@ def is_valid(url):
         if not any(domain.endswith(d) for d in allowed_domains):
             return False
 
-        if re.match(r".*\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma|zip|rar|gz)$", path):
+        if re.match(r".*\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma|zip|rar|gz|zip|pptx)$", path):
             return False
 
         if any(d in domain for d in ["ics.uci.edu", "cs.uci.edu", "stat.uci.edu"]):
@@ -139,6 +139,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

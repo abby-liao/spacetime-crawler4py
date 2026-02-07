@@ -37,7 +37,7 @@ def extract_next_links(url, resp):
         print(f"Error parsing {url}: {e}")
         return []
 
-return output_links
+    return output_links
             
             
         
@@ -87,6 +87,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

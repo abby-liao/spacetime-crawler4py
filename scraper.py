@@ -97,56 +97,69 @@ def is_valid(url):
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-
-        if parsed.scheme not in set(["http", "https"]):
+        
+        if parsed.scheme not in {"http", "https"}:
             return False
         
         domain = parsed.netloc.lower()
         path = parsed.path.lower()
-        query = parsed.query.lower()
-        if not path.endswith('/'): path += '/'
-
-        allowed_domains = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
-        if not any(domain.endswith(d) for d in allowed_domains):
-            return False
-
-        if re.match(r".*\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma|zip|rar|gz|zip|pptx)$", path):
-            return False
-
-        if any(d in domain for d in ["ics.uci.edu", "cs.uci.edu", "stat.uci.edu"]):
-            if path.startswith("/people/") or path.startswith("/happening/"):
-                return False
-
-        if "informatics.uci.edu" in domain:
-            if path.startswith("/wp-admin/"):
-                return "admin-ajax.php" in path
-            
-            if path.startswith("/research/") and path != "/research/":
-                allowed_research = [
-                    "/research/labs-centers/", "/research/areas-of-expertise/",
-                    "/research/example-research-projects/", "/research/phd-research/",
-                    "/research/past-dissertations/", "/research/masters-research/",
-                    "/research/undergraduate-research/", "/research/gifts-grants/"
-                ]
-                return any(path.startswith(r) for r in allowed_research)
         
-        if "events" in path or "calendar" in path or "event" in path:
-            if query or any(char.isdigit() for char in path): 
+        allowed_domains = [
+            "ics.uci.edu",
+            "cs.uci.edu",
+            "informatics.uci.edu",
+            "stat.uci.edu"
+        ]
+        
+        is_allowed = False
+        for allowed in allowed_domains:
+            if domain == allowed or domain.endswith("." + allowed):
+                is_allowed = True
+                break
+        
+        if not is_allowed:
+            return False
+
+        excluded_pattern = r'\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4' \
+                          r'|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex' \
+                          r'|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2' \
+                          r'|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1' \
+                          r'|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma' \
+                          r'|zip|rar|gz)(?:[?#&]|$)'
+        
+        if re.search(excluded_pattern, path):
+            return False
+        
+        if parsed.query and re.search(excluded_pattern, parsed.query.lower()):
+            return False
+
+        if len(url) > 300:
+            return False
+        
+        path_segments = [s for s in parsed.path.split('/') if s]
+        if len(path_segments) > 20:
+            return False
+        
+        if "ics.uci.edu" in domain or "cs.uci.edu" in domain or "stat.uci.edu" in domain:
+            if path.startswith("/people") or path.startswith("/happening"):
                 return False
-
-        if ".pdf" in path:
+        
+        if "informatics.uci.edu" in domain:
+            if path.startswith("/wp-admin/") and "admin-ajax.php" not in path:
+                return False
+ 
+        if "calendar" in path or "event" in path:
+            if parsed.query or re.search(r'\d{4}', path):
+                return False
+        
+        if "archive" in domain:
             return False
-
-        if ".gif" in path:
-            return False
-            
-
-        if "archive.ics.uci.edu" in domain:
-            return False
-
+        
         return True
+        
     except Exception as e:
         return False
+
 
 
 

@@ -129,7 +129,7 @@ def is_valid(url):
                 ]
                 return any(path.startswith(r) for r in allowed_research)
         
-        if "events" in path or "calendar" in path:
+        if "events" in path or "calendar" in path or "event" in path:
             if query or any(char.isdigit() for char in path): 
                 return False
 
@@ -139,6 +139,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

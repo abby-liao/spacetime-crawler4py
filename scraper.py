@@ -17,13 +17,14 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     output_links = []
-    soup = BeautifulSoup(resp.raw_response.content, "lxml")
-    for anchor in soup.find_all('a', href=True):
-        full_url = urljoin(url, anchor['href'])
-        parsed = urlparse(full_url)
-        clean_url = urlunparse(parsed._replace(fragment=""))
-        output_links.append(clean_url)
-return output_links
+    if resp.status == 200 and resp.raw_response:    return []
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        for anchor in soup.find_all('a', href=True):
+            full_url = urljoin(url, anchor['href'])
+            parsed = urlparse(full_url)
+            clean_url = urlunparse(parsed._replace(fragment=""))
+            output_links.append(clean_url)
+    return output_links
 
 
 def is_valid(url):
@@ -65,6 +66,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

@@ -167,11 +167,17 @@ def is_valid(url):
         
         if "archive" in domain:
             return False
+
+        wiki_traps = ["do=", "tab_files=", "tab_details=", "rev=", "do=media", "do=edit"]
+        if any(trap in query for trap in wiki_traps):
+            log_trap_or_error(url, "Blocked", "DokuWiki Trap Detected")
+            return False
         
         return True
         
     except Exception as e:
         return False
+
 
 
 

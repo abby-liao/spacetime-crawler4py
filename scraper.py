@@ -137,12 +137,17 @@ def is_valid(url):
         if ".pdf" in path:
             return False
 
+        if ".gif" in path:
+            return False
+            
+
         if "archive.ics.uci.edu" in domain:
             return False
 
         return True
     except Exception as e:
         return False
+
 
 
 

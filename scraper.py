@@ -36,7 +36,7 @@ def save_stats_to_file():
     report = {
         "unique_pages_count": len(record["unique_urls"]),
         "longest_page": record["longest_page"],
-        "top_50_words": record["word_freq"].most_common(50)
+        "top_50_words": record["word_freq"].most_common(50),
         "subdomains": Counter()
     }
     
@@ -130,6 +130,7 @@ def is_valid(url):
         return True
     except Exception as e:
         return False
+
 
 
 

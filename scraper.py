@@ -25,6 +25,47 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        #lower case for path and netloc
+        path = parsed.path.lower()
+        domain = parsed.netloc.lower()
+
+        allowed = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
+        if not any(dom in domain for dom in allowed):
+            return False
+            
+        if "ics.uci.edu" in domain:
+            if path.startswith("/people/"): return False
+            if path.startswith("/happening/"): return False
+
+                
+        if "cs.uci.edu" in domain:
+            if path.startswith("/people/"): return False
+            if path.startswith("/happening/"): return False
+                
+        if "informatics.uci.edu" in domain:
+            if path.startswith("/wp-admin/"):
+                if path == "/wp-admin/admin-ajax.php":
+                    return True 
+                return False 
+            if path.startswith("/research/"):
+                allowed_research_paths = [
+                    "/research/labs-centers/",
+                    "/research/areas-of-expertise/",
+                    "/research/example-research-projects/",
+                    "/research/phd-research/",
+                    "/research/past-dissertations/",
+                    "/research/masters-research/",
+                    "/research/undergraduate-research/",
+                    "/research/gifts-grants/"
+                ]
+                if any(path.startswith(allowed_path) for allowed_path in allowed_research_paths):
+                    return True 
+            return False 
+            
+        if "stat.uci.edu" in domain:
+            if path.startswith("/people/"): return False
+            if path.startswith("/happening/"): return False
+                
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -38,3 +79,4 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+

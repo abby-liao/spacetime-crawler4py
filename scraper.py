@@ -434,7 +434,7 @@ def is_valid(url):
         wiki_traps = ["do=edit", "do=media", "do=revisions", "do=backlink",
                       "do=diff", "do=admin", "do=recent", "do=index",
                       "tab_files=", "tab_details=", "rev=", "image=",
-                      "do=login", "do=export"]
+                      "do=login", "do=export", "idx="]
         if any(trap in query for trap in wiki_traps):
             return False
 

@@ -402,22 +402,13 @@ def is_valid(url):
                     return False
 
         # --- Check 6: Calendar/event trap patterns ---
-        # Calendar systems often generate infinite pages with different date parameters.
-        # We use specific regex patterns instead of broadly blocking all "event" URLs,
-        # since some legitimate research pages may contain "event" in their path.
-        calendar_trap_patterns = [
-            r'/calendar.*[\?&](date|month|year|day)=',       # Calendar with date query params
-            r'/events?/\d{4}[-/]\d{2}',                      # /event/2024-01 or /events/2024/01
-            r'/events?/.*[\?&](date|month|year|start|end)=',  # Events with date filters
-            r'/(calendar|events?)/\d{4}/?$',                  # /calendar/2024
-            r'/(calendar|events?)/\d{4}/\d{2}',              # /calendar/2024/01
-            r'/day/',                                         # Day view pages
-            r'/week/',                                        # Week view pages
-        ]
-        full_path_query = path + ('?' + query if query else '')
-        for pattern in calendar_trap_patterns:
-            if re.search(pattern, full_path_query):
-                return False
+        date_pattern = r'/(19|20)\d{2}[-/]\d{2}'
+        if re.search(date_pattern, path) or re.search(r'(19|20)\d{2}-\d{2}', query):
+            return False
+
+        bad_date_params = ["date=", "year=", "month=", "tribe-bar-date=", "ical="]
+        if any(p in query for p in bad_date_params):
+            return False
 
         # --- Check 7: Known problematic domains and paths ---
         # "archive" subdomains tend to have massive amounts of duplicate/low-value content

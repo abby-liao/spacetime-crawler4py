@@ -1,21 +1,3 @@
-"""
-scraper.py - Core scraper module for the UCI Web Crawler (Assignment 2)
-
-This module implements the main scraping logic:
-  1. scraper()           - Entry point called by the crawler framework for each page
-  2. extract_next_links() - Extracts and cleans all hyperlinks from a page
-  3. is_valid()           - Filters URLs to only crawl allowed domains and avoid traps
-
-Analytics collected (for the report):
-  Q1: Unique page count    -> record["unique_urls"]
-  Q2: Longest page         -> record["longest_page"]
-  Q3: Top 50 common words  -> record["word_freq"]
-  Q4: Subdomains of *.ics.uci.edu -> record["subdomains"]
-
-Results are periodically saved to crawler_results.json.
-Detected traps/errors are logged to detected_traps.txt for monitoring.
-"""
-
 import re
 from urllib.parse import urlparse, urljoin, urlunparse
 from bs4 import BeautifulSoup
@@ -47,12 +29,7 @@ STOP_WORDS = set([
     "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
 ])
 
-
-# =============================================================================
 # GLOBAL ANALYTICS RECORD
-# =============================================================================
-# This dictionary persists across all calls to scraper() during a single crawl run.
-# It collects the data needed to answer the 4 report questions.
 record = {
     "word_freq": Counter(),                          # Q3: word -> count (excluding stop words)
     "longest_page": {"url": "", "word_count": 0},    # Q2: tracks the page with most words
@@ -65,10 +42,7 @@ record = {
 # If the same pattern appears >100 times, we stop following it.
 url_pattern_counter = Counter()
 
-
-# =============================================================================
 # HELPER FUNCTIONS
-# =============================================================================
 
 def log_trap_or_error(url, status, reason):
     """
@@ -81,8 +55,7 @@ def log_trap_or_error(url, status, reason):
         with open("detected_traps.txt", "a") as f:
             f.write(log_entry)
     except Exception:
-        pass  # Don't let logging failures crash the crawler
-
+        pass  
 
 def save_stats_to_file():
     """
@@ -91,7 +64,6 @@ def save_stats_to_file():
     The JSON file contains all data needed to generate the final report.
     """
     try:
-        # Sort subdomains alphabetically as required by Q4
         sorted_subdomains = {k: v for k, v in sorted(record["subdomains"].items())}
 
         report = {
@@ -121,7 +93,6 @@ def get_url_pattern(url):
     segments = [s for s in parsed.path.split('/') if s]
     normalized = []
     for seg in segments:
-        # Replace pure numbers (e.g., page IDs, years) and hex strings (commit hashes)
         if re.match(r'^[\d]+$', seg) or re.match(r'^[a-f0-9]{6,}$', seg):
             normalized.append('<ID>')
         else:
@@ -140,15 +111,11 @@ def is_low_information(text, words):
     return False
 
 
-# =============================================================================
 # MAIN SCRAPER FUNCTION
-# =============================================================================
-
 def scraper(url, resp):
     """
     Main entry point called by the crawler framework for each fetched page.
 
-    Workflow:
       1. Validate the HTTP response (status code, content existence)
       2. Filter out non-HTML content and oversized files
       3. Deduplicate URLs (skip if already processed)
@@ -157,26 +124,14 @@ def scraper(url, resp):
       6. Detect infinite traps via URL pattern analysis
       7. Collect analytics (unique count, longest page, word freq, subdomains)
       8. Extract and return valid outgoing links
-
-    Args:
-        url:  The URL that was fetched
-        resp: The response object from the crawler framework
-              - resp.status: HTTP status code
-              - resp.raw_response: the actual HTTP response (has .content and .headers)
-              - resp.error: error message if status != 200
-
-    Returns:
-        List of valid URLs (strings) to be added to the crawl frontier
     """
 
     # --- Step 1: Validate HTTP response ---
     # Only process pages with status 200; log errors for monitoring
     if resp.status != 200:
         if resp.status >= 600:
-            # 600+ codes are custom errors from the course cache server
             log_trap_or_error(url, resp.status, "Cache server error")
         elif resp.status != 301 and resp.status != 302:
-            # 301/302 are redirects handled by the framework, no need to log
             log_trap_or_error(url, resp.status, f"HTTP error {resp.status}")
         return []
 
@@ -204,7 +159,7 @@ def scraper(url, resp):
     parsed_url = urlparse(url)
     clean_url = urlunparse(parsed_url._replace(fragment=""))
     if clean_url in record["unique_urls"]:
-        return []  # Already visited — skip to avoid double-counting analytics
+        return []  
 
     # --- Step 5: Parse HTML and extract text ---
     try:
@@ -215,7 +170,6 @@ def scraper(url, resp):
 
     # Extract visible text (excludes HTML tags, scripts, styles)
     raw_text = soup.get_text(separator=" ")
-    # Tokenize: only keep alphabetic words (no numbers, no punctuation)
     words = re.findall(r'[a-zA-Z]+', raw_text.lower())
 
     # --- Step 6: Skip low-information pages ---
@@ -264,27 +218,8 @@ def scraper(url, resp):
     return [link for link in links if is_valid(link)]
 
 
-# =============================================================================
-# LINK EXTRACTION
-# =============================================================================
 
 def extract_next_links(url, resp, soup=None):
-    """
-    Extract all hyperlinks (<a href="...">) from the parsed HTML page.
-
-    For each link found:
-      - Resolve relative URLs to absolute using urljoin
-      - Remove the fragment part (#...)
-      - Skip javascript:, mailto:, and tel: links
-
-    Args:
-        url:  The base URL of the current page (used to resolve relative links)
-        resp: The response object (not used directly since we pass soup)
-        soup: Pre-parsed BeautifulSoup object to avoid double-parsing
-
-    Returns:
-        List of cleaned, absolute URL strings
-    """
     output_links = []
     if soup is None:
         return output_links
@@ -292,14 +227,11 @@ def extract_next_links(url, resp, soup=None):
     for anchor in soup.find_all('a', href=True):
         href = anchor['href'].strip()
 
-        # Skip non-HTTP links (javascript actions, email links, phone links)
         if not href or href.startswith(('javascript:', 'mailto:', 'tel:')):
             continue
 
-        # Convert relative URLs (e.g., "/about") to absolute (e.g., "https://site.com/about")
         full_url = urljoin(url, href)
 
-        # Remove fragment — per assignment spec, fragments don't make URLs unique
         parsed = urlparse(full_url)
         clean_url = urlunparse(parsed._replace(fragment=""))
         clean_url = clean_url.strip()
@@ -309,10 +241,6 @@ def extract_next_links(url, resp, soup=None):
 
     return output_links
 
-
-# =============================================================================
-# URL VALIDATION
-# =============================================================================
 
 def is_valid(url):
     """
@@ -330,11 +258,6 @@ def is_valid(url):
       9. Share/feed/action links that generate infinite variations
       10. Pagination with extremely high page numbers
 
-    Args:
-        url: The URL string to validate
-
-    Returns:
-        True if the URL should be crawled, False otherwise
     """
     try:
         parsed = urlparse(url)
@@ -397,18 +320,23 @@ def is_valid(url):
         # Patterns like /a/b/a/b/a/b indicate an infinite directory loop
         if len(path_segments) != len(set(path_segments)):
             for seg in path_segments:
-                # If any non-trivial segment appears 3+ times, it's likely a trap
                 if len(seg) > 2 and path_segments.count(seg) >= 3:
                     return False
 
         # --- Check 6: Calendar/event trap patterns ---
-        date_pattern = r'/(19|20)\d{2}[-/]\d{2}'
-        if re.search(date_pattern, path) or re.search(r'(19|20)\d{2}-\d{2}', query):
-            return False
-
-        bad_date_params = ["date=", "year=", "month=", "tribe-bar-date=", "ical="]
-        if any(p in query for p in bad_date_params):
-            return False
+        calendar_trap_patterns = [
+            r'/calendar.*[\?&](date|month|year|day)=',       # Calendar with date query params
+            r'/events?/\d{4}[-/]\d{2}',                      # /event/2024-01 or /events/2024/01
+            r'/events?/.*[\?&](date|month|year|start|end)=',  # Events with date filters
+            r'/(calendar|events?)/\d{4}/?$',                  # /calendar/2024
+            r'/(calendar|events?)/\d{4}/\d{2}',              # /calendar/2024/01
+            r'/day/',                                         # Day view pages
+            r'/week/',                                        # Week view pages
+        ]
+        full_path_query = path + ('?' + query if query else '')
+        for pattern in calendar_trap_patterns:
+            if re.search(pattern, full_path_query):
+                return False
 
         # --- Check 7: Known problematic domains and paths ---
         # "archive" subdomains tend to have massive amounts of duplicate/low-value content
